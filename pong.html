@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game with D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0802a3;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=3270&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1waWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-position: center;
+        }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 4px solid #6ee7b7;
+            box-shadow: 0 0 30px rgba(102, 231, 183, 0.8);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        #scoreboard {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 36px;
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 2px 2px 8px rgba(255, 255, 255, 0.8);
+            z-index: 10;
+            display: flex;
+            gap: 30px;
+        }
+        #scoreboard div{
+             padding: 10px;
+        }
+
+        #game-over-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 36px;
+            z-index: 11;
+            display: none;
+        }
+
+        #game-over-modal p {
+            margin-bottom: 30px;
+            font-size: 48px;
+            text-shadow: 3px 3px 15px rgba(255, 255, 255, 0.9);
+        }
+
+        #new-game-button {
+            background-color: #f97316;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        #new-game-button:hover {
+            background-color: #dc2626;
+            transform: scale(1.05);
+        }
+
+        #instructions-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.95);
+            border: 4px solid #8b5cf6;
+            border-radius: 16px;
+            padding: 30px;
+            color: #fff;
+            z-index: 12;
+            text-align: center;
+            font-size: 20px;
+            line-height: 1.7;
+            max-width: 700px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        #instructions-modal h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #f43f5e;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        #instructions-modal ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 25px;
+            font-size: 20px;
+        }
+
+        #instructions-modal li {
+            margin-bottom: 12px;
+        }
+
+        #instructions-modal button {
+            background-color: #ec4899;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #instructions-modal button:hover {
+            background-color: #d946ef;
+            transform: scale(1.05);
+        }
+
+        .separator {
+            width: 2px;
+            height: 50px;
+            background-color: #fff;
+            margin: 0 25px;
+        }
+
+        #player1-paddle, #player2-paddle {
+            fill: #fff;
+            stroke: #e0f2fe;
+            stroke-width: 3px;
+            rx: 8;
+            ry: 8;
+            filter: drop-shadow(0 0 12px rgba(224, 255, 254, 0.5));
+        }
+
+        #ball {
+            fill: #f59e0b;
+            stroke: #d97706;
+            stroke-width: 2px;
+            filter: drop-shadow(0 0 15px rgba(251, 146, 60, 0.8));
+        }
+
+        .ball-trail {
+            fill: rgba(251, 146, 60, 0.8);
+            stroke: none;
+            r: 10;
+            opacity: 0;
+            transform: scale(0);
+            transition: transform 0.05s ease, opacity 0.05s ease, r 0.05s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="scoreboard">
+            <div>Player 1: <span id="player1-score">0</span></div>
+            <div class="separator"></div>
+            <div>Player 2: <span id="player2-score">0</span></div>
+        </div>
+        <div id="game-over-modal">
+            <p id="winner-text">Game Over</p>
+            <button id="new-game-button">New Game</button>
+        </div>
+        <div id="instructions-modal">
+          <h2>How to Play</h2>
+          <ul>
+            <li>Player 1: Use the 'W' key to move up and the 'S' key to move down.</li>
+            <li>Player 2: Use the 'Up Arrow' key to move up and the 'Down Arrow' key to move down.</li>
+            <li>The goal is to hit the ball past your opponent's paddle.</li>
+            <li>First to reach 5 points wins!</li>
+          </ul>
+          <button id="close-instructions">Got it!</button>
+        </div>
+        <svg id="game-svg"></svg>
+    </div>
+    <script>
+        const container = d3.select("#game-container");
+        const svg = d3.select("#game-svg");
+        const scoreboard = d3.select("#scoreboard");
+        const player1ScoreDisplay = d3.select("#player1-score");
+        const player2ScoreDisplay = d3.select("#player2-score");
+        const gameOverModal = d3.select("#game-over-modal");
+        const newGameButton = d3.select("#new-game-button");
+        const winnerText = d3.select("#winner-text");
+        const instructionsModal = d3.select("#instructions-modal");
+        const closeInstructionsButton = d3.select("#close-instructions");
+
+        const WIDTH = 800;
+        const HEIGHT = 600;
+        const PADDLE_WIDTH = 16;
+        const PADDLE_HEIGHT = 100;
+        const BALL_RADIUS = 12;
+        const PADDLE_SPEED = 8;
+        const BALL_SPEED = 7;
+        const MAX_SCORE = 5;
+        const TRAIL_LENGTH = 20;
+
+        let player1Score = 0;
+        let player2Score = 0;
+        let ballX = WIDTH / 2;
+        let ballY = HEIGHT / 2;
+        let ballSpeedX = BALL_SPEED;
+        let ballSpeedY = BALL_SPEED;
+        let player1Y = (HEIGHT - PADDLE_HEIGHT) / 2;
+        let player2Y = (HEIGHT - PADDLE_HEIGHT) / 2;
+        let gameRunning = false;
+        let animationFrameId;
+        let lastTime = 0;
+        let ballTrail = [];
+
+        svg.attr("width", WIDTH).attr("height", HEIGHT);
+
+        // Function to create a paddle
+        function createPaddle(x, y, width, height, id) {
+            return svg.append("rect")
+                .attr("id", id)
+                .attr("x", x)
+                .attr("y", y)
+                .attr("width", width)
+                .attr("height", height)
+                .attr("fill", "#fff");
+        }
+
+        // Function to create the ball
+        function createBall(x, y, radius) {
+            return svg.append("circle")
+                .attr("id", "ball")
+                .attr("cx", x)
+                .attr("cy", y)
+                .attr("r", radius)
+                .attr("fill", "#ffdb58");
+        }
+
+        // Create paddles and ball
+        const player1Paddle = createPaddle(0, player1Y, PADDLE_WIDTH, PADDLE_HEIGHT, "player1-paddle");
+        const player2Paddle = createPaddle(WIDTH - PADDLE_WIDTH, player2Y, PADDLE_WIDTH, PADDLE_HEIGHT, "player2-paddle");
+        const ball = createBall(ballX, ballY, BALL_RADIUS);
+
+        // Initial setup: hide game over modal and show instructions
+        gameOverModal.style("display", "none");
+        instructionsModal.style("display", "flex");
+
+        // Event listener for the new game button
+        newGameButton.on("click", () => {
+            resetGame();
+            startGame();
+        });
+
+        // Event listener for closing the instructions modal
+        closeInstructionsButton.on("click", () => {
+            instructionsModal.style("display", "none");
+            startGame();
+        });
+
+        // Keyboard event listeners for player movement
+        const keys = {};
+        document.addEventListener("keydown", (e) => {
+            keys[e.key] = true;
+        });
+        document.addEventListener("keyup", (e) => {
+            keys[e.key] = false;
+        });
+
+        function updatePaddlePosition(player, y) {
+            y = Math.max(0, Math.min(y, HEIGHT - PADDLE_HEIGHT));
+            player.attr("y", y);
+            if (player === player1Paddle) {
+                player1Y = y;
+            } else {
+                player2Y = y;
+            }
+        }
+
+        // Function to move the paddles
+        function movePaddles() {
+            if (keys["w"] || keys["W"]) {
+                updatePaddlePosition(player1Paddle, player1Y - PADDLE_SPEED);
+            }
+            if (keys["s"] || keys["S"]) {
+                updatePaddlePosition(player1Paddle, player1Y + PADDLE_SPEED);
+            }
+            if (keys["ArrowUp"]) {
+                updatePaddlePosition(player2Paddle, player2Y - PADDLE_SPEED);
+            }
+            if (keys["ArrowDown"]) {
+                updatePaddlePosition(player2Paddle, player2Y + PADDLE_SPEED);
+            }
+        }
+
+        // Function to update the ball's position
+        function updateBallPosition() {
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            // Wall collision detection
+            if (ballY + BALL_RADIUS > HEIGHT || ballY - BALL_RADIUS < 0) {
+                ballSpeedY = -ballSpeedY;
+            }
+
+            // Paddle collision detection
+            if (ballX - BALL_RADIUS < PADDLE_WIDTH) {
+                if (ballY > player1Y && ballY < player1Y + PADDLE_HEIGHT) {
+                    ballSpeedX = -ballSpeedX;
+                    ballSpeedX *= 1.1;
+                    ballSpeedY *= 1.1;
+                } else {
+                    player2Score++;
+                    updateScoreboard();
+                    resetBall();
+                }
+            } else if (ballX + BALL_RADIUS > WIDTH - PADDLE_WIDTH) {
+                if (ballY > player2Y && ballY < player2Y + PADDLE_HEIGHT) {
+                    ballSpeedX = -ballSpeedX;
+                    ballSpeedX *= 1.1;
+                    ballSpeedY *= 1.1;
+                } else {
+                    player1Score++;
+                    updateScoreboard();
+                    resetBall();
+                }
+            }
+
+            ball.attr("cx", ballX).attr("cy", ballY);
+
+            // Store the current ball position in the trail
+            ballTrail.push({ x: ballX, y: ballY, time: performance.now() });
+            // Keep the trail at the desired length
+            if (ballTrail.length > TRAIL_LENGTH) {
+                ballTrail.shift();
+            }
+
+            // Update and render the ball trail
+            updateBallTrail();
+        }
+
+        function updateBallTrail() {
+            const currentTime = performance.now();
+            const trailCircles = svg.selectAll(".ball-trail")
+                .data(ballTrail);
+
+            // Enter
+            trailCircles.enter()
+                .append("circle")
+                .attr("class", "ball-trail")
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("r", 10)
+                .style("opacity", 1)
+                .attr("transform", "scale(0)")
+                .transition()
+                .duration(150)
+                .style("opacity", 0)
+                .attr("transform", "scale(2.5)")
+                .remove();
+
+            // Update
+            trailCircles
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("r", d => {
+                    const timeDiff = currentTime - d.time;
+                    return Math.max(0, 12 * (1 - timeDiff / 500));
+                })
+                .style("opacity", d => Math.max(0, 1 - (currentTime - d.time) / 600))
+                .attr("transform", d => {
+                    const timeDiff = currentTime - d.time;
+                    const scale = Math.max(0.1, 1.5 - timeDiff / 300);
+                    return `scale(${scale})`;
+                });
+
+            // Exit
+            trailCircles.exit().remove();
+        }
+
+        // Function to update the scoreboard
+        function updateScoreboard() {
+            player1ScoreDisplay.text(player1Score);
+            player2ScoreDisplay.text(player2Score);
+            if (player1Score >= MAX_SCORE || player2Score >= MAX_SCORE) {
+                endGame();
+            }
+        }
+
+        // Function to reset the ball's position and direction
+        function resetBall() {
+            ballX = WIDTH / 2;
+            ballY = HEIGHT / 2;
+            ballSpeedX = -ballSpeedX;
+            ballSpeedY = BALL_SPEED;
+            ball.attr("cx", ballX).attr("cy", ballY);
+            ballTrail = [];
+            updateBallTrail();
+        }
+
+        // Function to reset the game
+        function resetGame() {
+            player1Score = 0;
+            player2Score = 0;
+            player1Y = (HEIGHT - PADDLE_HEIGHT) / 2;
+            player2Y = (HEIGHT - PADDLE_HEIGHT) / 2;
+            updateScoreboard();
+            updatePaddlePosition(player1Paddle, player1Y);
+            updatePaddlePosition(player2Paddle, player2Y);
+            resetBall();
+            gameRunning = false;
+            gameOverModal.style("display", "none");
+            ballSpeedX = BALL_SPEED;
+            ballSpeedY = BALL_SPEED;
+        }
+
+        // Function to start the game
+        function startGame() {
+            if (!gameRunning) {
+                gameRunning = true;
+                lastTime = performance.now();
+                animate();
+            }
+        }
+
+        // Function to end the game
+        function endGame() {
+            gameRunning = false;
+            cancelAnimationFrame(animationFrameId);
+            winnerText.textContent = player1Score > player2Score ? "Player 1 Wins!" : "Player 2 Wins!";
+            gameOverModal.style("display", "flex");
+        }
+
+        // Game loop function
+        function animate() {
+            if (gameRunning) {
+                const currentTime = performance.now();
+                const deltaTime = currentTime - lastTime;
+
+                movePaddles();
+                updateBallPosition();
+                updateScoreboard();
+
+                lastTime = currentTime;
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        }
+    </script>
+</body>
+</html>
