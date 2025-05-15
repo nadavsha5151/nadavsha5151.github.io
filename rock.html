@@ -1,0 +1,88 @@
+<html>
+    <head>
+       <title>RPS - 😁😎</title> 
+       <link rel="stylesheet" href="bootstrap.min.css"/>
+
+        <script>
+            var moves = [
+                "Rock",
+                "Paper",
+                "Scissors",
+            ];
+            
+            var wins = 0;
+            var losses = 0;
+            var draws = 0;
+
+            function playMove(move) {
+                var random = Math.random();
+                random = random * 3;
+                random = Math.floor(random);
+                console.log(moves[move] + " vs " + moves[random]);
+                
+                var game = moves[move] + " vs " + moves[random];
+                
+                var rockWins = move == 0 && random == 2;
+                var paperWins = move == 1 && random == 0;
+                var scissorsWins = move == 2 && random == 1;
+                
+                
+                if (move == random) {
+                    draws++;
+                } else if (rockWins || paperWins || scissorsWins) {
+                    wins++;
+                } else {
+                    losses++;
+                }
+
+                game += "<br/>Wins: " + wins + " | Losses: " + losses + " | Draws: " + draws;
+            
+                var score = document.getElementById("score");
+                score.innerHTML = game;
+            
+            }                   
+        </script>
+        <style>
+            body {
+                padding-top: 200px;
+                color: rgb(252, 252, 252);
+                background: linear-gradient(rgb(0, 255, 136), blue);
+            }
+
+            input {
+                width: 150px;
+                height: 50px;
+                background-color: green;
+                color:white !important;
+                font-size: 20px;
+                border-radius: 10px;
+                margin: 5px;
+                filter: drop-shadow(4px 4px 6px black);
+                transition: width 2s, height 2s, background-color 2s, filter 2s; color: #000;
+            }
+
+            input:hover {
+                background-color: black;
+                width: 200px; 
+                height: 70px;
+                filter: drop-shadow(4px 4px 60px black);
+
+            }
+        </style>
+    </head>     
+    <body>
+        <center>
+        <input type="button" value="Rock😉" onclick="playMove(0)"/>
+        <input type="button" value="Paper😎" onclick="playMove(1)"/>
+        <input type="button" value="Scissors😁" onclick="playMove(2)"/>
+       
+            <p>
+                <h1>
+                    <div id="score"/>
+
+                </h1>
+            </p>
+        </center>
+    </body>
+</html>
+
