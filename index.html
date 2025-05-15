@@ -1,89 +1,175 @@
-<html>
-    <head>
-       <title>RPS - 😁😎</title> 
-       <link rel="stylesheet" href="bootstrap.min.css"/>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ndav's Game Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Swapped to Inter for a slightly different modern feel */
+            background-color: #f0f0f0; /* Light background, more modern */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: background-color 0.5s ease; /* Smooth transition for dark mode */
+        }
+        #name-container {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        #my-name {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 2rem; /* Slightly larger for impact */
+            color: #6b7280; /* Darker, more sophisticated text color */
+            text-shadow: 0 0 8px rgba(107, 114, 128, 0.5); /* Subtler shadow */
+            transition: color 0.3s ease, text-shadow 0.3s ease; /* Smooth transition */
+            display: inline-block; /* Allows for better animation control */
+        }
+        #my-name:hover {
+            color: #8b5cf6; /* A more vibrant hover color */
+            text-shadow: 0 0 12px rgba(139, 92, 246, 0.7); /* Increased shadow on hover */
+            animation: pulse 2s infinite; /* Subtle pulse animation on hover */
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); } /* Slightly stronger pulse */
+            100% { transform: scale(1); }
+        }
 
-        <script>
-            var moves = [
-                "Rock",
-                "Paper",
-                "Scissors",
-            ];
-            
-            var wins = 0;
-            var losses = 0;
-            var draws = 0;
+        .game-button {
+            padding: 0.8rem 1.8rem; /* Slightly adjusted padding */
+            font-size: 1.1rem; /* Slightly larger font */
+            margin: 1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 0.75rem; /* More rounded corners */
+            background-color: #4caf50; /* A bit more saturated */
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; /* Added box-shadow transition */
+            box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow */
+        }
 
-            function playMove(move) {
-                var random = Math.random();
-                random = random * 3;
-                random = Math.floor(random);
-                console.log(moves[move] + " vs " + moves[random]);
-                
-                var game = moves[move] + " vs " + moves[random];
-                
-                var rockWins = move == 0 && random == 2;
-                var paperWins = move == 1 && random == 0;
-                var scissorsWins = move == 2 && random == 1;
-                
-                
-                if (move == random) {
-                    draws++;
-                } else if (rockWins || paperWins || scissorsWins) {
-                    wins++;
-                } else {
-                    losses++;
-                }
+        .game-button:hover {
+            background-color: #45a049;
+            transform: translateY(-4px) scale(1.04); /* Slight lift and scale on hover */
+            box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.2); /* Increased shadow on hover */
+        }
 
-                game += "<br/>Wins: " + wins + " | Losses: " + losses + " | Draws: " + draws;
-            
-                var score = document.getElementById("score");
-                score.innerHTML = game;
-            
-            }                   
-        </script>
-        <style>
-            body {
-                padding-top: 200px;
-                color: rgb(252, 252, 252);
-                background: linear-gradient(rgb(0, 255, 136), blue);
-            }
+        .game-button:active {
+            background-color: #388e3c;
+            transform: translateY(0) scale(1);
+            box-shadow: 0 3px 6px -1px rgba(0, 0, 0, 0.1); /* Smaller shadow on active */
+        }
 
-            input {
-                width: 150px;
-                height: 50px;
-                background-color: green;
-                color:white !important;
-                font-size: 20px;
-                border-radius: 10px;
-                margin: 5px;
-                filter: drop-shadow(4px 4px 6px black);
-                transition: width 2s, height 2s, background-color 2s, filter 2s; color: #000;
-            }
+        #button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 0.5rem; /* Reduced top margin */
+        }
 
-            input:hover {
-                background-color: black;
-                width: 200px; 
-                height: 70px;
-                filter: drop-shadow(4px 4px 60px black);
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1a202c; /* Dark background */
+            color: #f7fafc;
+        }
+        body.dark-mode #my-name {
+            color: #a7f3d0; /* A brighter, contrasting color in dark mode */
+            text-shadow: 0 0 8px rgba(167, 243, 208, 0.6);
+        }
+        body.dark-mode #my-name:hover {
+            color: #6ee7b7;
+            text-shadow: 0 0 12px rgba(110, 231, 183, 0.8);
+        }
+        .game-button.dark-mode {
+            background-color: #4a5568; /* Darker button color */
+            color: #fff;
+            box-shadow: 0 5px 9px -2px rgba(0, 0, 0, 0.3); /* Slightly stronger shadow in dark mode */
+        }
+        .game-button.dark-mode:hover {
+            background-color: #718096;
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 7px 11px -2px rgba(0, 0, 0, 0.4); /* Increased shadow on hover in dark mode */
+        }
+        .game-button.dark-mode:active {
+            background-color: #4a5568;
+            transform: translateY(0) scale(1);
+            box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.2); /* Smaller shadow on active in dark mode */
+        }
 
-            }
-        </style>
-    </head>     
-    <body>
-        <center>
-        <input type="button" value="Rock😉" onclick="playMove(0)"/>
-        <input type="button" value="Paper😎" onclick="playMove(1)"/>
-        <input type="button" value="Scissors😁" onclick="playMove(2)"/>
-       
-            <p>
-                <h1>
-                    <div id="score"/>
+        #dark-mode-toggle {
+            position: fixed; /* Fix button to the corner */
+            top: 1rem;
+            right: 1rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            background-color: #4a5568;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10; /* Ensure button is above other elements */
+            font-family: 'Inter', sans-serif;
+        }
 
-                </h1>
-            </p>
-        </center>
-    </body>
+        #dark-mode-toggle:hover {
+            background-color: #718096;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        #dark-mode-toggle:active {
+            background-color: #4a5568;
+            transform: translateY(0) scale(1);
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+        }
+
+    </style>
+</head>
+<body>
+    <div id="name-container">
+        <h1 id="my-name">Nadav</h1>
+    </div>
+    <div id="button-container">
+        <a href="rock.html">
+            <button class="game-button">Rock Game</button>
+        </a>
+        <a href="pong.html">
+            <button class="game-button">Pong Game</button>
+        </a>
+    </div>
+    <button id="dark-mode-toggle">Toggle Dark Mode</button>
+
+    <script>
+        const body = document.body;
+        const gameButtons = document.querySelectorAll('.game-button');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+        // Function to toggle dark mode
+        function toggleDarkMode() {
+            body.classList.toggle('dark-mode');
+            gameButtons.forEach(button => {
+                button.classList.toggle('dark-mode');
+            });
+            // Store the user's preference
+            localStorage.setItem('darkMode', body.classList.contains('dark-mode'));
+        }
+
+        // Event listener for the dark mode toggle button
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+
+        // Check for saved dark mode preference on page load
+        if (localStorage.getItem('darkMode') === 'true') {
+            toggleDarkMode(); // Apply dark mode if it was previously enabled
+        }
+    </script>
+</body>
 </html>
-
-
